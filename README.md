@@ -4,5 +4,3 @@ using Bipartite graph and Hungarian Algo-
 rithm(used to find optimal match from one set
 to another set in a way that the overall cost is
 minimum or maximum)
-
-https://sites.google.com/d/1x3cXqwfWf3PnX7G9GSPnfNtUPcfKRYwa/p/1OCJjUJSxEqyZXzuLe_6bsUAtlra2mwgJ/edit
