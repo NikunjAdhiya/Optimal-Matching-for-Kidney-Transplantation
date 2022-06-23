@@ -1,0 +1,260 @@
+#include <bits/stdc++.h>
+#include <windows.h>
+using namespace std;
+class Hungarian_algorithm
+{
+    bool Match_found = false;
+    bool **final_assignment;
+
+public:
+    void solve(int **intial_matrix, int r, int c);
+    void First_part(int **temporary_matrix, int r, int c);
+    void Second_part(int **temporaray_matrix, int r, int c);
+    void Display(int **temp, int r, int c);
+};
+void Hungarian_algorithm::Display(int **temp, int r, int c)
+{
+    cout << endl;
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            cout << temp[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+void Hungarian_algorithm::solve(int **intial_matrix, int r, int c)
+{
+
+    int n = r >= c ? r : c;
+    int **temp_matrix = new int *[n];
+    for (int i = 0; i < n; i++)
+    {
+        temp_matrix[i] = new int[n];
+    }
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            temp_matrix[i][j] = intial_matrix[i][j];
+        }
+    }
+    if (r > c)
+    {
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < r - c; j++)
+                temp_matrix[i][n - j - 1] = 0;
+    }
+    if (r < c)
+    {
+        for (int i = 0; i < c - r; i++)
+            for (int j = 0; j < c; j++)
+                temp_matrix[n - i - 1][j] = 0;
+    }
+    final_assignment = new bool *[n];
+    for (int i = 0; i < n; i++)
+        final_assignment[i] = new bool[n];
+    First_part(temp_matrix, n, n);
+    while (!Match_found)
+        Second_part(temp_matrix, n, n);
+    cout << "\nThe Optimal assingment is \n";
+    int cost = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (r < i + 1)
+            break;
+        cout << i + 1 << " assigned to column - ";
+        for (int j = 0; j < n; j++)
+        {
+            if (final_assignment[i][j])
+            {
+                cout << j << " cost = ";
+                if (c < (j + 1))
+                {
+                    cout << "0" << endl;
+                    break;
+                }
+                else
+                {
+                    cout << intial_matrix[i][j] << endl;
+                    cost += intial_matrix[i][j];
+                    break;
+                }
+            }
+        }
+    }
+    cout << "\nThe total minimum cost is " << cost << endl;
+}
+void Hungarian_algorithm::First_part(int **temp, int r, int c)
+{
+    for (int i = 0; i < r; i++)
+    {
+        int row_min = temp[i][0];
+        for (int j = 0; j < c; j++)
+            if (row_min > temp[i][j])
+                row_min = temp[i][j];
+        for (int j = 0; j < c; j++)
+        {
+            temp[i][j] -= row_min;
+        }
+    }
+    for (int i = 0; i < c; i++)
+    {
+        int col_min = temp[0][i];
+        for (int j = 0; j < r; j++)
+            if (col_min > temp[j][i])
+                col_min = temp[j][i];
+        for (int j = 0; j < r; j++)
+        {
+            temp[j][i] -= col_min;
+        }
+    }
+}
+void Hungarian_algorithm::Second_part(int **temp, int r, int c)
+{
+    bool *row_checked = new bool[r];
+    bool *column_checked = new bool[c];
+    bool **marked = new bool *[r];
+    for (int i = 0; i < r; i++)
+        marked[i] = new bool[c];
+    for (int i = 0; i < r; i++)
+        for (int j = 0; j < c; j++)
+            marked[i][j] = false;
+    for (int i = 0; i < r; i++)
+        row_checked[i] = false;
+    for (int i = 0; i < c; i++)
+        column_checked[i] = false;
+    bool All_zeros_covered = false;
+    while (!All_zeros_covered)
+    {
+        for (int i = 0; i < r; i++)
+        {
+            int number_of_zeros = 0;
+            if (row_checked[i])
+                continue;
+            for (int j = 0; j < c; j++)
+            {
+                if (!column_checked[j] && temp[i][j] == 0)
+                    number_of_zeros++;
+            }
+            if (number_of_zeros == 1)
+            {
+                int col_index = 0;
+                for (int j = 0; j < c; j++)
+                {
+                    if (!column_checked[j] && temp[i][j] == 0)
+                    {
+                        col_index = j;
+                        break;
+                    }
+                }
+                marked[i][col_index] = true;
+                column_checked[col_index] = true;
+            }
+        }
+        for (int i = 0; i < c; i++)
+        {
+            int number_of_zeros = 0;
+            if (column_checked[i])
+                continue;
+            for (int j = 0; j < r; j++)
+            {
+                if (!row_checked[j] && temp[j][i] == 0)
+                    number_of_zeros++;
+            }
+            if (number_of_zeros == 1)
+            {
+                int row_index = 0;
+                for (int j = 0; j < r; j++)
+                {
+                    if (!row_checked[j] && temp[j][i] == 0)
+                    {
+                        row_index = j;
+                        break;
+                    }
+                }
+                marked[row_index][i] = true;
+                row_checked[row_index] = true;
+            }
+        }
+        All_zeros_covered = true;
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < r; j++)
+                if (!row_checked[i] && !column_checked[j] && temp[i][j] == 0)
+                {
+                    All_zeros_covered = false;
+                    marked[i][j] = true;
+                    row_checked[i] = true;
+                    column_checked[j] = true;
+                }
+    }
+    int Number_of_marked = 0;
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < r; j++)
+        {
+            if (marked[i][j])
+                Number_of_marked++;
+        }
+    }
+
+    if (Number_of_marked == r)
+    {
+        this->Match_found = true;
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < r; j++)
+                final_assignment[i][j] = marked[i][j];
+        return;
+    }
+    int Min_of_non_marked;
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if (!row_checked[i] && !column_checked[j])
+            {
+                Min_of_non_marked = temp[i][j];
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if (!row_checked[i] && !column_checked[j] && temp[i][j] < Min_of_non_marked)
+                Min_of_non_marked = temp[i][j];
+        }
+    }
+    for (int i = 0; i < r; i++)
+        for (int j = 0; j < c; j++)
+        {
+            if (!row_checked[i] && !column_checked[j])
+                temp[i][j] -= Min_of_non_marked;
+            if (row_checked[i] && column_checked[j])
+                temp[i][j] += Min_of_non_marked;
+        }
+}
+int main(int argc, char const *argv[])
+{
+    Hungarian_algorithm H;
+    int rows, columns;
+    cout << "Enter Number of rows and number of columns\n";
+    cin >> rows >> columns;
+    cout << "Enter the elements row by row\n";
+    int **arr;
+    arr = new int *[rows];
+    for (int i = 0; i < rows; i++)
+    {
+        arr[i] = new int[columns];
+    }
+    for (int i = 0; i < rows; i++)
+    {
+        cout << i + 1 << " - ";
+        for (int j = 0; j < columns; j++)
+            cin >> arr[i][j];
+    }
+    H.solve(arr, rows, columns);
+    return 0;
+}
